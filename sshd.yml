@@ -1,0 +1,31 @@
+---
+- hosts: all
+  tasks:
+  - name: Install openssh-server
+    apt: name=openssh-server state=present
+    sudo: True
+
+  - name: Create user group
+    group: name=ubuntu state=present 
+    sudo: True
+
+  - name: Create ubuntu user
+    user: name=ubuntu state=present group=ubuntu groups=sudo,adm shell=/bin/bash
+    sudo: True
+
+  - name: Sudoers config file
+    template: src=sudoers dest=/etc/sudoers validate='visudo -cf %s'
+    sudo: True
+
+  - name: sshd config file
+    template: src=sshd_config dest=/etc/ssh/sshd_config
+    sudo: True
+
+  - name: ssh authorized key for ubuntu
+    authorized_key: user=ubuntu key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+    sudo: True
+ 
+  - name: sshd restarted
+    service: name=ssh state=restarted
+    sudo: True
+
